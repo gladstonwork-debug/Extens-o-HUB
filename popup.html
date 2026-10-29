@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HubSpot Sinalizador</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="brand">HubSpot Sinalizador</div>
+        <div class="version" id="versionLabel">Versão 3.0.12</div>
+      </div>
+      <div class="health health-loading" id="healthBadge">Verificando…</div>
+    </header>
+
+    <section class="card">
+      <div class="section-title">⚙️ Funcionalidades</div>
+      <div class="setting-row">
+        <div><strong>Sinalização dos tickets</strong><span>Cores vermelho, azul, laranja e roxo</span></div>
+        <label class="switch"><input id="ticketColors" type="checkbox"><span></span></label>
+      </div>
+      <div class="setting-row">
+        <div><strong>Sirene da 1ª resposta</strong><span>Alerta pulsante em tickets pendentes</span></div>
+        <label class="switch"><input id="firstResponseAlert" type="checkbox"><span></span></label>
+      </div>
+      <div class="setting-row">
+        <div><strong>Toast de atribuição</strong><span>Aviso ao aumentar “Atribuído a mim”</span></div>
+        <label class="switch"><input id="assignmentToast" type="checkbox"><span></span></label>
+      </div>
+      <div class="setting-row">
+        <div><strong>Velocidade de áudio</strong><span>Controle 1x / 1,5x / 2x</span></div>
+        <label class="switch"><input id="audioSpeed" type="checkbox"><span></span></label>
+      </div>
+      <div class="setting-row">
+        <div><strong>Transcrição local</strong><span>Whisper executado no navegador</span></div>
+        <label class="switch"><input id="transcription" type="checkbox"><span></span></label>
+      </div>
+      <div class="setting-row last">
+        <div><strong>Resumo histórico IA</strong><span>Destaca o resumo já gerado pelo HubSpot</span></div>
+        <label class="switch"><input id="historicalSummary" type="checkbox"><span></span></label>
+      </div>
+
+      <div class="subgrid">
+        <label class="field">
+          <span>Duração do toast</span>
+          <select id="toastDurationSec">
+            <option value="5">5 segundos</option>
+            <option value="10">10 segundos</option>
+            <option value="15">15 segundos</option>
+            <option value="20">20 segundos</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Velocidade inicial</span>
+          <select id="audioPreferredSpeed">
+            <option value="">Última utilizada</option>
+            <option value="1">1x</option>
+            <option value="1.5">1,5x</option>
+            <option value="2">2x</option>
+          </select>
+        </label>
+      </div>
+
+      <button class="secondary-btn" id="resetSettings" type="button">Restaurar configurações padrão</button>
+    </section>
+
+    <section class="card diagnosis-card">
+      <div class="diagnosis-head">
+        <div>
+          <div class="section-title">🩺 Diagnóstico</div>
+          <div class="muted">Leitura da aba atual do HubSpot</div>
+        </div>
+        <button class="copy-btn" id="copyDiagnostic" type="button">Copiar</button>
+      </div>
+
+      <div class="diag-grid" id="diagGrid">
+        <div class="diag-label">HubSpot</div><div class="diag-value" id="diagHubspot">—</div>
+        <div class="diag-label">Help Desk</div><div class="diag-value" id="diagHelpdesk">—</div>
+        <div class="diag-label">Dark Reader</div><div class="diag-value" id="diagDark">—</div>
+        <div class="diag-label">Tickets visíveis</div><div class="diag-value" id="diagTickets">—</div>
+        <div class="diag-label">Atribuído a mim</div><div class="diag-value" id="diagAssigned">—</div>
+        <div class="diag-label">Última leitura</div><div class="diag-value" id="diagQueue">—</div>
+        <div class="diag-label">Players de áudio</div><div class="diag-value" id="diagAudio">—</div>
+        <div class="diag-label">Controle de velocidade</div><div class="diag-value" id="diagSpeed">—</div>
+        <div class="diag-label">Resumo IA HubSpot</div><div class="diag-value" id="diagHistory">—</div>
+        <div class="diag-label">WebGPU</div><div class="diag-value" id="diagWebgpu">—</div>
+        <div class="diag-label">WASM</div><div class="diag-value" id="diagWasm">—</div>
+        <div class="diag-label">Whisper</div><div class="diag-value" id="diagWhisper">—</div>
+        <div class="diag-label">Modelo</div><div class="diag-value small" id="diagModel">—</div>
+        <div class="diag-label">Último status</div><div class="diag-value small" id="diagStatus">—</div>
+        <div class="diag-label">Último erro</div><div class="diag-value small error-text" id="diagError">Nenhum</div>
+      </div>
+    </section>
+
+    <div class="footer-note" id="saveStatus">Configurações salvas localmente neste Chrome.</div>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

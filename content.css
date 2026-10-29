@@ -1,0 +1,1331 @@
+/* ================================================================
+   HubSpot Help Desk — Sinalizador 2.6.6 TESTE — observação persistente + seleção visual
+   ================================================================ */
+
+/* 🔴 CLIENTE — última mensagem do cliente: vermelho FIXO, sem piscar. */
+[data-test-id^="thread-list-member-row"].hs-unread-client {
+  border: 2px solid #ef233c !important;
+  border-radius: 8px !important;
+  background-color: #fff1f2 !important;
+  box-sizing: border-box !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-unread-client,
+[data-test-id^="thread-list-member-row"].hs-unread-client * {
+  color: #111111 !important;
+  font-weight: 700 !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-unread-client [data-testid="unread-indicator"] {
+  background-color: #ef233c !important;
+}
+
+/* 🔵 TÉCNICO — última mensagem do técnico: azul FIXO. */
+[data-test-id^="thread-list-member-row"].hs-unread-agent {
+  border: 2px solid #2f6fed !important;
+  border-radius: 8px !important;
+  background-color: #eef4ff !important;
+  box-sizing: border-box !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-unread-agent,
+[data-test-id^="thread-list-member-row"].hs-unread-agent * {
+  color: #111111 !important;
+  font-weight: 700 !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-unread-agent [data-testid="unread-indicator"] {
+  background-color: #2f6fed !important;
+}
+
+/* 🟠 OBSERVAÇÃO INTERNA — card inteiro laranja até resposta real do técnico. */
+[data-test-id^="thread-list-member-row"].hs-unread-note {
+  border: 2px solid #f2994a !important;
+  border-radius: 8px !important;
+  background-color: #ffedcf !important;
+  box-sizing: border-box !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-unread-note,
+[data-test-id^="thread-list-member-row"].hs-unread-note * {
+  color: #111111 !important;
+  font-weight: 700 !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-unread-note [data-testid="unread-indicator"] {
+  background-color: #f2994a !important;
+}
+
+/* 🟣 24H+ — prioridade visual absoluta, roxo FIXO e sem animação. */
+[data-test-id^="thread-list-member-row"].hs-old-ticket {
+  border: 2px solid #8b5cf6 !important;
+  border-radius: 8px !important;
+  background-color: #f5f0ff !important;
+  box-sizing: border-box !important;
+  animation: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-old-ticket,
+[data-test-id^="thread-list-member-row"].hs-old-ticket * {
+  color: #111111 !important;
+  font-weight: 700 !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-old-ticket [data-testid="unread-indicator"] {
+  background-color: #8b5cf6 !important;
+}
+
+/* ================================================================
+   ◻️ CHAT SELECIONADO — CINZA SOBRE O STATUS ATUAL
+
+   O HubSpot marca o card aberto com aria-selected/data-selected=true.
+   Como as cores da extensão sobrescrevem o fundo nativo de seleção,
+   aplicamos uma camada cinza translúcida SEM remover a borda/status:
+   vermelho, azul, laranja, roxo e a sirene continuam identificáveis.
+   ================================================================ */
+[data-test-id^="thread-list-member-row"][aria-selected="true"],
+[data-test-id^="thread-list-member-row"][data-selected="true"] {
+  position: relative !important;
+  /* A camada cinza é pintada sobre a cor de fundo do status, sem
+     substituir a cor da borda nem a animação de primeira resposta. */
+  background-image: linear-gradient(
+    rgba(75, 85, 99, 0.22),
+    rgba(75, 85, 99, 0.22)
+  ) !important;
+}
+
+/* Moldura interna discreta para deixar inequívoco qual conversa está aberta.
+   Fica alguns pixels para dentro, preservando a borda colorida externa. */
+[data-test-id^="thread-list-member-row"][aria-selected="true"]::after,
+[data-test-id^="thread-list-member-row"][data-selected="true"]::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 3px !important;
+  border: 1px solid rgba(55, 65, 81, 0.42) !important;
+  border-radius: 5px !important;
+  pointer-events: none !important;
+  z-index: 5 !important;
+}
+
+/* ================================================================
+   🚨 SIRENE — EXCLUSIVA DA PRIMEIRA RESPOSTA PENDENTE
+
+   Não existe mais regra de "cliente ficou X minutos sem resposta = piscar".
+   O cliente em uma conversa já iniciada fica apenas vermelho fixo.
+
+   A sirene aparece:
+   1) em todos os cards visíveis de "Não atribuído" (exceto 24h+ roxo);
+   2) no mesmo ticket em "Atribuído a mim" até a PRIMEIRA resposta técnica.
+
+   O efeito usa outline + box-shadow para manter texto/fundo legíveis.
+   ================================================================ */
+@keyframes hs-first-response-siren {
+  0%, 100% {
+    outline: 3px solid rgba(239, 35, 60, 0.95);
+    outline-offset: 1px;
+    box-shadow:
+      0 0 0 1px rgba(239, 35, 60, 0.70),
+      0 0 10px 2px rgba(239, 35, 60, 0.28);
+  }
+
+  20% {
+    outline: 3px solid rgba(255, 70, 90, 1);
+    outline-offset: 3px;
+    box-shadow:
+      0 0 0 4px rgba(239, 35, 60, 0.28),
+      0 0 18px 5px rgba(239, 35, 60, 0.48);
+  }
+
+  42% {
+    outline: 2px solid rgba(255, 170, 180, 0.82);
+    outline-offset: 1px;
+    box-shadow:
+      0 0 0 1px rgba(239, 35, 60, 0.10),
+      0 0 5px 1px rgba(239, 35, 60, 0.10);
+  }
+
+  60% {
+    outline: 3px solid rgba(239, 35, 60, 1);
+    outline-offset: 4px;
+    box-shadow:
+      0 0 0 5px rgba(239, 35, 60, 0.34),
+      0 0 22px 6px rgba(239, 35, 60, 0.52);
+  }
+
+  78% {
+    outline: 3px solid rgba(255, 96, 112, 0.95);
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 3px rgba(239, 35, 60, 0.20),
+      0 0 14px 3px rgba(239, 35, 60, 0.32);
+  }
+}
+
+[data-test-id^="thread-list-member-row"].hs-first-response-alert:not(.hs-old-ticket) {
+  position: relative !important;
+  z-index: 2 !important;
+  border-color: #ef233c !important;
+  animation: hs-first-response-siren 0.85s linear infinite !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-first-response-alert:not(.hs-old-ticket) [data-testid="unread-indicator"] {
+  background-color: #ef233c !important;
+  box-shadow: 0 0 8px rgba(239, 35, 60, 0.55) !important;
+}
+
+/* Mantém a mesma atenção visual mesmo em sistemas com redução de movimento,
+   porém com pulso mais lento em vez de remover completamente o alerta. */
+@media (prefers-reduced-motion: reduce) {
+  [data-test-id^="thread-list-member-row"].hs-first-response-alert:not(.hs-old-ticket) {
+    animation-duration: 1.5s !important;
+  }
+}
+
+
+/* ================================================================
+   🔔 TOAST INTERNO — NOVO ATENDIMENTO ATRIBUÍDO
+
+   Aviso de teste dentro do próprio HubSpot. Aparece no canto superior
+   direito por 10 segundos quando o contador real de "Atribuído a mim"
+   aumenta (ex.: 26 → 27, 2 → 3, 10 → 12).
+   ================================================================ */
+#hs-sinalizador-toast-root {
+  position: fixed !important;
+  top: 72px !important;
+  right: 24px !important;
+  width: min(420px, calc(100vw - 48px)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+}
+
+@keyframes hs-toast-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, -6px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes hs-toast-siren {
+  0%, 100% {
+    border-color: rgba(239, 35, 60, 0.95);
+    box-shadow: 0 12px 34px rgba(17, 24, 39, 0.22), 0 0 0 1px rgba(239, 35, 60, 0.18);
+  }
+  45% {
+    border-color: rgba(255, 122, 137, 1);
+    box-shadow: 0 14px 38px rgba(17, 24, 39, 0.25), 0 0 0 5px rgba(239, 35, 60, 0.18), 0 0 24px rgba(239, 35, 60, 0.28);
+  }
+}
+
+@keyframes hs-toast-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+@keyframes hs-toast-focus {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 35, 60, 0); }
+  45% { box-shadow: 0 0 0 6px rgba(239, 35, 60, 0.28), 0 0 24px rgba(239, 35, 60, 0.42); }
+}
+
+.hs-sinalizador-toast {
+  position: relative !important;
+  min-height: 118px !important;
+  display: grid !important;
+  grid-template-columns: 44px minmax(0, 1fr) 28px !important;
+  align-items: start !important;
+  gap: 12px !important;
+  padding: 16px 16px 18px !important;
+  overflow: hidden !important;
+  border: 2px solid #ef233c !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: #111827 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+  box-sizing: border-box !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  animation: hs-toast-enter 220ms ease-out both, hs-toast-siren 1.05s ease-in-out 250ms 4 !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.hs-sinalizador-toast::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 auto 0 0 !important;
+  width: 5px !important;
+  background: #ef233c !important;
+}
+
+.hs-sinalizador-toast-icon {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: #fff1f2 !important;
+  border: 1px solid rgba(239, 35, 60, 0.28) !important;
+  color: #ef233c !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75) !important;
+}
+
+.hs-sinalizador-toast-content {
+  min-width: 0 !important;
+  padding-top: 1px !important;
+}
+
+.hs-sinalizador-toast-eyebrow {
+  margin-bottom: 3px !important;
+  color: #ef233c !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.11em !important;
+}
+
+.hs-sinalizador-toast-title {
+  color: #111827 !important;
+  font-size: 15px !important;
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+}
+
+.hs-sinalizador-toast-body {
+  margin-top: 6px !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  font-weight: 650 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.hs-sinalizador-toast-hint {
+  margin-top: 6px !important;
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  font-weight: 600 !important;
+}
+
+.hs-sinalizador-toast-close {
+  width: 28px !important;
+  height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: -4px -5px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+}
+
+.hs-sinalizador-toast-close:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+.hs-sinalizador-toast-progress {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 4px !important;
+  background: #ef233c !important;
+  transform-origin: left center !important;
+  animation: hs-toast-progress 10s linear forwards !important;
+}
+
+.hs-sinalizador-toast-leave {
+  opacity: 0 !important;
+  transform: translate3d(22px, 0, 0) scale(0.985) !important;
+  transition: opacity 220ms ease, transform 220ms ease !important;
+}
+
+[data-test-id^="thread-list-member-row"].hs-toast-focus-pulse {
+  animation: hs-toast-focus 0.75s ease-in-out 2 !important;
+}
+
+@media (max-width: 720px) {
+  #hs-sinalizador-toast-root {
+    top: 60px !important;
+    right: 12px !important;
+    width: calc(100vw - 24px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-sinalizador-toast {
+    animation: hs-toast-enter 160ms ease-out both !important;
+  }
+  .hs-sinalizador-toast-progress {
+    animation-duration: 10s !important;
+  }
+}
+
+/* ================================================================
+   🌙 DARK READER — VARIANTE 2.6.6.4
+
+   IMPORTANTE:
+   - Toda a lógica funcional (contador, toast, primeira resposta, estados)
+     permanece baseada na 2.6.6 considerada estável.
+   - No Dark Reader, as cores de status NÃO preenchem o card: aparecem
+     somente no contorno.
+   - SOMENTE .hs-first-response-alert pulsa/brilha em vermelho. Essa classe
+     é aplicada pela lógica 2.6.6 a:
+       1) atendimentos em "Não atribuído";
+       2) atendimentos novos em "Atribuído a mim" até a primeira resposta.
+   ================================================================ */
+
+/* Status fixos: apenas contorno; deixa fundo e texto para HubSpot/Dark Reader. */
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-client,
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-agent,
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-note,
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-old-ticket {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: inherit !important;
+  animation: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-client *,
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-agent *,
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-note *,
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-old-ticket * {
+  color: inherit !important;
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-client {
+  border: 2px solid rgb(255, 58, 82) !important;
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-agent {
+  border: 2px solid rgb(74, 132, 255) !important;
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-unread-note {
+  border: 2px solid rgb(255, 166, 62) !important;
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-old-ticket {
+  border: 2px solid rgb(167, 110, 255) !important;
+}
+
+/* Chat aberto: no dark não cobre o card com cinza; usa só moldura interna. */
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"][aria-selected="true"],
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"][data-selected="true"] {
+  background-image: none !important;
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"][aria-selected="true"]::after,
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"][data-selected="true"]::after {
+  border: 1px solid rgba(229, 231, 235, 0.72) !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.30) !important;
+}
+
+/* 🚨 Sirene Dark: somente a moldura externa pulsa. */
+@keyframes hs-dark-first-response-border-glow {
+  0%, 100% {
+    opacity: 0.55;
+    border-color: rgb(255, 80, 100);
+    box-shadow:
+      0 0 4px 1px rgba(255, 45, 75, 0.55),
+      0 0 10px 2px rgba(255, 25, 60, 0.28);
+    filter: brightness(1.15) saturate(1.35);
+  }
+  38% {
+    opacity: 1;
+    border-color: rgb(255, 28, 65);
+    box-shadow:
+      0 0 6px 2px rgba(255, 65, 90, 1),
+      0 0 16px 4px rgba(255, 25, 60, 0.82),
+      0 0 28px 7px rgba(255, 25, 60, 0.44);
+    filter: brightness(1.65) saturate(2);
+  }
+  58% {
+    opacity: 0.35;
+    border-color: rgb(255, 125, 140);
+    box-shadow:
+      0 0 2px 0 rgba(255, 65, 90, 0.38),
+      0 0 6px 1px rgba(255, 25, 60, 0.18);
+    filter: brightness(1.05) saturate(1.15);
+  }
+  76% {
+    opacity: 1;
+    border-color: rgb(255, 35, 70);
+    box-shadow:
+      0 0 6px 2px rgba(255, 65, 90, 0.96),
+      0 0 18px 5px rgba(255, 25, 60, 0.76),
+      0 0 30px 8px rgba(255, 25, 60, 0.38);
+    filter: brightness(1.55) saturate(1.9);
+  }
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-first-response-alert:not(.hs-old-ticket) {
+  position: relative !important;
+  z-index: 3 !important;
+  border: 2px solid rgb(255, 45, 75) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+  overflow: visible !important;
+}
+
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-first-response-alert:not(.hs-old-ticket)::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -2px !important;
+  border: 3px solid rgb(255, 45, 75) !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  pointer-events: none !important;
+  z-index: 7 !important;
+  animation: hs-dark-first-response-border-glow 0.78s ease-in-out infinite !important;
+  will-change: opacity, box-shadow, filter !important;
+}
+
+/* Indicador interno fica fixo; não pulsa. O brilho pertence só ao contorno. */
+html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-first-response-alert:not(.hs-old-ticket) [data-testid="unread-indicator"] {
+  background-color: rgb(255, 45, 75) !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-darkreader-scheme="dark"] [data-test-id^="thread-list-member-row"].hs-first-response-alert:not(.hs-old-ticket)::before {
+    animation-duration: 1.2s !important;
+  }
+}
+
+/* ========================================================================
+   HubSpot Sinalizador 3.0.2 TESTE — controle de velocidade dos áudios
+   Adição isolada sobre a base Dark 2.6.6.4.
+   ======================================================================== */
+.hs-audio-speed-control[data-hs-audio-speed-control="true"] {
+  min-width: 44px !important;
+  height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  margin: 0 4px !important;
+  padding: 0 8px !important;
+  border: 1px solid #cbd6e2 !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #33475b !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  box-shadow: none !important;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease !important;
+}
+
+.hs-audio-speed-control[data-hs-audio-speed-control="true"]:hover {
+  background: #f5f8fa !important;
+  border-color: #7c98b6 !important;
+}
+
+.hs-audio-speed-control[data-hs-audio-speed-control="true"]:active {
+  transform: translateY(1px) !important;
+}
+
+.hs-audio-speed-control[data-hs-audio-speed-control="true"]:focus-visible {
+  outline: 2px solid #0b5cff !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px rgba(11, 92, 255, 0.12) !important;
+}
+
+/* No Dark Reader, o botão segue o tema escuro e não interfere nos cards. */
+html[data-darkreader-scheme="dark"] .hs-audio-speed-control[data-hs-audio-speed-control="true"] {
+  background: rgba(31, 41, 55, 0.95) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, 0.55) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-audio-speed-control[data-hs-audio-speed-control="true"]:hover {
+  background: rgba(55, 65, 81, 0.98) !important;
+  border-color: rgba(191, 219, 254, 0.68) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-audio-speed-control[data-hs-audio-speed-control="true"]:focus-visible {
+  outline-color: #93c5fd !important;
+  box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.18) !important;
+}
+
+/* ========================================================================
+   3.0.4 TESTE — TRANSCRIÇÃO LOCAL COM WHISPER
+
+   Regras de segurança visual:
+   - seletores exclusivos da feature de áudio;
+   - nenhuma regra global de fundo/abas/painéis do HubSpot;
+   - no Dark Reader os novos elementos são transparentes e herdam o tema.
+   ======================================================================== */
+.hs-audio-transcription-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 7px !important;
+  margin-top: 7px !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.hs-audio-transcribe-button {
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 0 10px !important;
+  border: 1px solid #cbd6e2 !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #33475b !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
+.hs-audio-transcribe-button:hover {
+  background: #f5f8fa !important;
+  border-color: #7c98b6 !important;
+}
+
+.hs-audio-transcribe-button:disabled {
+  opacity: 0.72 !important;
+  cursor: progress !important;
+}
+
+.hs-audio-transcription-status {
+  max-width: min(420px, 58vw) !important;
+  overflow-wrap: anywhere !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+}
+
+.hs-audio-transcription-panel {
+  margin-top: 8px !important;
+  padding: 10px 12px !important;
+  border: 1px solid #d8e0e8 !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  color: #1f2937 !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+}
+
+.hs-audio-transcription-panel[hidden] {
+  display: none !important;
+}
+
+.hs-audio-transcription-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 6px !important;
+}
+
+.hs-audio-transcription-title {
+  font-family: inherit !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+}
+
+.hs-audio-transcription-copy {
+  border: 0 !important;
+  background: transparent !important;
+  color: #0b5cff !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  padding: 2px 4px !important;
+}
+
+.hs-audio-transcription-text {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  font-weight: 500 !important;
+}
+
+/* Dark Reader: somente os componentes NOVOS da transcrição são adaptados. */
+html[data-darkreader-scheme="dark"] .hs-audio-transcription-actions {
+  background: transparent !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-audio-transcribe-button,
+html[data-darkreader-scheme="dark"] .hs-audio-transcription-panel {
+  background: transparent !important;
+  color: inherit !important;
+  border-color: rgba(148, 163, 184, 0.52) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-audio-transcribe-button:hover {
+  background: rgba(148, 163, 184, 0.12) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-audio-transcription-status,
+html[data-darkreader-scheme="dark"] .hs-audio-transcription-text,
+html[data-darkreader-scheme="dark"] .hs-audio-transcription-title {
+  color: inherit !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-audio-transcription-copy {
+  color: #93c5fd !important;
+}
+
+/* ========================================================================
+   HubSpot Sinalizador 3.0.7 TESTE — Aba local "Atenção"
+   Adição isolada: não altera os estilos das regras anteriores.
+   ======================================================================== */
+.hs-attention-pin[data-hs-attention-pin="true"] {
+  width: 24px !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 24px !important;
+  margin: 0 5px !important;
+  padding: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #7c98b6 !important;
+  font: inherit !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  opacity: 0.72 !important;
+  transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease, transform 120ms ease !important;
+}
+
+.hs-attention-pin[data-hs-attention-pin="true"]::before {
+  content: "☆" !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+}
+
+.hs-attention-pin[data-hs-attention-pin="true"][data-active="true"] {
+  color: #d97706 !important;
+  opacity: 1 !important;
+}
+
+.hs-attention-pin[data-hs-attention-pin="true"][data-active="true"]::before {
+  content: "★" !important;
+}
+
+[data-test-id^="thread-list-member-row"]:hover .hs-attention-pin,
+[data-test-id^="thread-list-member-row"][aria-selected="true"] .hs-attention-pin,
+[data-test-id^="thread-list-member-row"][data-selected="true"] .hs-attention-pin,
+.hs-attention-pin[data-active="true"] {
+  opacity: 1 !important;
+}
+
+.hs-attention-pin:hover {
+  background: rgba(124, 152, 182, 0.12) !important;
+  color: #33475b !important;
+}
+
+.hs-attention-pin:active {
+  transform: translateY(1px) !important;
+}
+
+.hs-attention-pin:focus-visible {
+  outline: 2px solid #0b5cff !important;
+  outline-offset: 1px !important;
+}
+
+.hs-attention-nav {
+  display: flex !important;
+  align-items: center !important;
+  padding: 2px 8px 4px 30px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+
+.hs-attention-nav-button {
+  max-width: 100% !important;
+  min-height: 26px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 3px 8px !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #516f90 !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.hs-attention-nav-button:hover,
+.hs-attention-nav-button.is-active {
+  background: #f5f8fa !important;
+  color: #33475b !important;
+  border-color: #dfe3eb !important;
+}
+
+.hs-attention-panel {
+  position: fixed !important;
+  z-index: 120 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border: 1px solid #dfe3eb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #33475b !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 6px 20px rgba(45, 62, 80, 0.14) !important;
+  font-family: inherit !important;
+}
+
+.hs-attention-panel[hidden] {
+  display: none !important;
+}
+
+.hs-attention-panel-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  flex: 0 0 auto !important;
+  padding: 12px 12px 10px !important;
+  border-bottom: 1px solid #eaf0f6 !important;
+  background: #f8fafc !important;
+  box-sizing: border-box !important;
+}
+
+.hs-attention-panel-title {
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+  color: inherit !important;
+}
+
+.hs-attention-panel-subtitle {
+  margin-top: 2px !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  font-weight: 500 !important;
+  color: #7c98b6 !important;
+}
+
+.hs-attention-back,
+.hs-attention-open {
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px 9px !important;
+  border: 1px solid #cbd6e2 !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #33475b !important;
+  font-family: inherit !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.hs-attention-back:hover,
+.hs-attention-open:hover {
+  background: #f5f8fa !important;
+  border-color: #7c98b6 !important;
+}
+
+.hs-attention-panel-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 8px !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+
+.hs-attention-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  min-height: 58px !important;
+  margin: 0 0 7px !important;
+  padding: 9px 9px 9px 11px !important;
+  border: 1px solid #dfe3eb !important;
+  border-left: 3px solid #f59e0b !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: inherit !important;
+  box-sizing: border-box !important;
+}
+
+.hs-attention-item-main {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.hs-attention-item-title {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+  color: inherit !important;
+}
+
+.hs-attention-item-meta {
+  margin-top: 3px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-family: inherit !important;
+  font-size: 10.5px !important;
+  line-height: 1.3 !important;
+  font-weight: 500 !important;
+  color: #7c98b6 !important;
+}
+
+.hs-attention-item-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  flex: 0 0 auto !important;
+}
+
+.hs-attention-remove {
+  width: 27px !important;
+  height: 27px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #7c98b6 !important;
+  font-family: inherit !important;
+  font-size: 19px !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+.hs-attention-remove:hover {
+  background: rgba(220, 38, 38, 0.08) !important;
+  color: #b91c1c !important;
+}
+
+.hs-attention-empty {
+  min-height: 150px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 20px !important;
+  text-align: center !important;
+  color: #516f90 !important;
+  box-sizing: border-box !important;
+}
+
+.hs-attention-empty strong {
+  font-size: 13px !important;
+  color: #33475b !important;
+}
+
+.hs-attention-empty span {
+  max-width: 260px !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+.hs-attention-notice {
+  position: fixed !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  z-index: 10010 !important;
+  max-width: min(420px, calc(100vw - 48px)) !important;
+  padding: 10px 13px !important;
+  border: 1px solid #dfe3eb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #33475b !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8px 24px rgba(45, 62, 80, 0.18) !important;
+}
+
+.hs-attention-notice[hidden] {
+  display: none !important;
+}
+
+.hs-attention-notice.is-warn {
+  border-left: 4px solid #f59e0b !important;
+}
+
+.hs-attention-notice.is-ok {
+  border-left: 4px solid #10b981 !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-pin {
+  color: #94a3b8 !important;
+  background: transparent !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-pin[data-active="true"] {
+  color: #fbbf24 !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-pin:hover,
+html[data-darkreader-scheme="dark"] .hs-attention-nav-button:hover,
+html[data-darkreader-scheme="dark"] .hs-attention-nav-button.is-active {
+  background: rgba(148, 163, 184, 0.12) !important;
+  color: inherit !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-nav,
+html[data-darkreader-scheme="dark"] .hs-attention-nav-button {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-panel,
+html[data-darkreader-scheme="dark"] .hs-attention-item,
+html[data-darkreader-scheme="dark"] .hs-attention-notice {
+  background: rgba(17, 24, 39, 0.98) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, 0.38) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-panel-head {
+  background: rgba(31, 41, 55, 0.98) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-panel-subtitle,
+html[data-darkreader-scheme="dark"] .hs-attention-item-meta,
+html[data-darkreader-scheme="dark"] .hs-attention-empty {
+  color: #94a3b8 !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-empty strong {
+  color: #e5e7eb !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-back,
+html[data-darkreader-scheme="dark"] .hs-attention-open {
+  background: transparent !important;
+  color: inherit !important;
+  border-color: rgba(148, 163, 184, 0.45) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-attention-back:hover,
+html[data-darkreader-scheme="dark"] .hs-attention-open:hover {
+  background: rgba(148, 163, 184, 0.12) !important;
+  border-color: rgba(191, 219, 254, 0.58) !important;
+}
+
+/* ========================================================================
+   3.0.10 TESTE — Resumo histórico IA
+
+   Mantém o card in-flow da 3.0.9. O visual escuro passa a ser o padrão tanto
+   no HubSpot claro quanto no Dark Reader, preservando o mesmo contraste.
+   ======================================================================== */
+.hs-historical-summary-slot {
+  display: block;
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 6px 8px 8px;
+  position: relative;
+  z-index: 8;
+}
+
+.hs-historical-summary-slot[hidden] {
+  display: none !important;
+}
+
+.hs-historical-summary-panel {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-height: min(310px, 36vh);
+  padding: 10px 12px 9px;
+  border: 1px solid rgba(96, 165, 250, 0.34) !important;
+  border-radius: 10px;
+  background: rgba(13, 17, 23, 0.98) !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.24) !important;
+  overflow: hidden;
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.hs-historical-summary-panel[hidden] {
+  display: none !important;
+}
+
+.hs-historical-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 22px;
+  margin-bottom: 7px;
+}
+
+.hs-historical-summary-panel[data-collapsed="true"] {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.hs-historical-summary-panel[data-collapsed="true"] .hs-historical-summary-header {
+  margin-bottom: 0;
+}
+
+.hs-historical-summary-panel[data-collapsed="true"] .hs-historical-summary-body,
+.hs-historical-summary-panel[data-collapsed="true"] .hs-historical-summary-footer {
+  display: none !important;
+}
+
+.hs-historical-summary-heading {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 750;
+  color: #e5e7eb !important;
+}
+
+.hs-historical-summary-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.hs-historical-summary-badge {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid rgba(96, 165, 250, 0.32) !important;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #bfdbfe !important;
+  font-size: 9px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.hs-historical-summary-collapse {
+  flex: 0 0 auto;
+  border: 0;
+  padding: 2px 0;
+  background: transparent !important;
+  color: #a7b6cc !important;
+  font: inherit;
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hs-historical-summary-collapse:hover,
+.hs-historical-summary-toggle:hover {
+  text-decoration: underline;
+}
+
+.hs-historical-summary-collapse:focus-visible,
+.hs-historical-summary-toggle:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.6);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.hs-historical-summary-body {
+  font-size: 11px;
+  line-height: 1.42;
+  color: #e5e7eb !important;
+}
+
+.hs-historical-summary-main,
+.hs-historical-summary-recurring-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  color: inherit !important;
+}
+
+.hs-historical-summary-panel[data-expanded="false"] .hs-historical-summary-main {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.hs-historical-summary-recurring {
+  margin-top: 7px;
+  padding: 7px 8px;
+  border-left: 3px solid rgba(251, 191, 36, 0.72) !important;
+  border-radius: 0 7px 7px 0;
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+
+.hs-historical-summary-recurring[hidden] {
+  display: none !important;
+}
+
+.hs-historical-summary-recurring-label {
+  margin-bottom: 3px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 750;
+  color: #fcd34d !important;
+}
+
+.hs-historical-summary-panel[data-expanded="false"] .hs-historical-summary-recurring-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.hs-historical-summary-panel[data-expanded="true"] .hs-historical-summary-body {
+  max-height: min(220px, 27vh);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.hs-historical-summary-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(148, 163, 184, 0.25) !important;
+}
+
+.hs-historical-summary-source {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9ca3af !important;
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.hs-historical-summary-toggle {
+  flex: 0 0 auto;
+  border: 0;
+  padding: 2px 0;
+  background: transparent !important;
+  color: #93c5fd !important;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hs-historical-summary-toggle[hidden] {
+  display: none !important;
+}
+
+/* Dark Reader recebe os mesmos valores explicitamente para evitar que a
+   transformação automática do tema altere a identidade visual do card. */
+html[data-darkreader-scheme="dark"] .hs-historical-summary-panel {
+  background: rgba(13, 17, 23, 0.98) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(96, 165, 250, 0.34) !important;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.24) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-historical-summary-badge {
+  background: rgba(59, 130, 246, 0.12) !important;
+  color: #bfdbfe !important;
+  border-color: rgba(96, 165, 250, 0.32) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-historical-summary-collapse {
+  color: #a7b6cc !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-historical-summary-recurring {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-left-color: rgba(251, 191, 36, 0.72) !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-historical-summary-recurring-label {
+  color: #fcd34d !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-historical-summary-source {
+  color: #9ca3af !important;
+}
+
+html[data-darkreader-scheme="dark"] .hs-historical-summary-toggle {
+  color: #93c5fd !important;
+}
+

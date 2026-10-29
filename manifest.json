@@ -1,0 +1,63 @@
+{
+  "manifest_version": 3,
+  "name": "HubSpot Help Desk - Sinalizador de Chamados (TESTE 3.0.12)",
+  "version": "3.0.12",
+  "version_name": "3.0.12 TESTE - Ajuste da aba Atenção",
+  "description": "Mantém integralmente a base 3.0.10 e ajusta apenas o posicionamento do Resumo histórico IA para acompanhar o composer ativo em Chat e Observação, sem sobrepor a área de texto.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_title": "HubSpot Sinalizador",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://app.hubspot.com/help-desk/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://api-na1.hubspot.com/*",
+    "https://api-eu1.hubspot.com/*",
+    "https://*.hubspotusercontent-na1.net/*",
+    "https://*.hubspotusercontent-eu1.net/*"
+  ],
+  "sandbox": {
+    "pages": [
+      "sandbox.html"
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';",
+    "sandbox": "sandbox allow-scripts; script-src 'self' https://cdn.jsdelivr.net 'unsafe-eval' 'wasm-unsafe-eval'; connect-src https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://*.xethub.hf.co; worker-src 'self' blob: https://cdn.jsdelivr.net; child-src 'self' blob:;"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sandbox.html",
+        "sandbox.js"
+      ],
+      "matches": [
+        "https://app.hubspot.com/*"
+      ]
+    }
+  ],
+  "icons": {
+    "128": "icon128.png"
+  }
+}
