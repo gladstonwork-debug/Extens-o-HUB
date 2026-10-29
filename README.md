@@ -1,3 +1,15 @@
+# HubSpot Sinalizador 3.0.13 — TESTE
+
+Agenda pessoal nos atendimentos marcados em Atenção:
+- Editar acompanhamento: aguardando, próxima ação, data/hora opcional e prioridade.
+- Horário local do computador. Lembretes vencidos destacados em vermelho; ativos ordenados pela data, antes dos itens sem lembrete.
+- Concluir ação mantém o favorito e os dados para consulta. Editar e salvar reativa a ação.
+- Cancelar ou Escape descarta a edição; × continua removendo o favorito e seus dados pessoais.
+- Dados salvos no perfil local do navegador, sem alterar o chamado no HubSpot ou sincronizar com outros computadores. Sem notificações com HubSpot fechado.
+- Preserva favoritos anteriores. Atualize a extensão existente, sem removê-la, para preservar seu armazenamento.
+
+Baixe o ZIP na pasta downloads, extraia, recarregue a extensão em chrome://extensions e atualize a página do HubSpot. Validação automatizada com página simulada; integração real precisa ser avaliada no HubSpot autenticado.
+
 # HubSpot Sinalizador 3.0.12 — TESTE
 
 Ajuste isolado da aba Atenção: remove o botão Abrir e preserva os botões entre atualizações idênticas para não interromper o clique no ×. A remoção usa o fluxo existente de favoritos, persistência e contador. Sem lembretes ou alterações nas outras funcionalidades.

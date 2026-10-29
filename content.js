@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "3.0.12";
+  const VERSION = "3.0.13";
   const SETTINGS_KEY = "hs-sinalizador-settings-v1";
   const DEFAULT_SETTINGS = Object.freeze({
     ticketColors: true,
@@ -1957,6 +1957,11 @@
         addedAt: Number(entry.addedAt) || Date.now(),
         lastSeenAt: Number(entry.lastSeenAt) || Number(entry.addedAt) || Date.now(),
         signalState: String(entry.signalState || "").slice(0, 40),
+        waitingFor: normalizeText(entry.waitingFor || "").slice(0, 300),
+        nextAction: normalizeText(entry.nextAction || "").slice(0, 500),
+        dueAt: Number.isFinite(entry.dueAt) && entry.dueAt > 0 && entry.dueAt < 8640000000000000 ? entry.dueAt : null,
+        priority: ["low", "normal", "high"].includes(entry.priority) ? entry.priority : "normal",
+        completedAt: Number.isFinite(entry.completedAt) && entry.completedAt > 0 ? entry.completedAt : null,
       });
       if (normalized.length >= MAX_ITEMS) break;
     }
@@ -2179,6 +2184,100 @@
     return "há " + days + (days === 1 ? " dia" : " dias");
   }
 
+  function agendaButton(text, action) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "hs-agenda-button";
+    button.textContent = text;
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      action();
+    });
+    return button;
+  }
+
+  function editAgenda(key) {
+    const item = findSaved(key);
+    if (!item || document.querySelector(".hs-agenda-dialog")) return;
+    const dialog = document.createElement("dialog");
+    dialog.className = "hs-agenda-dialog";
+    dialog.setAttribute("aria-label", "Editar acompanhamento");
+    const form = document.createElement("form");
+    const heading = document.createElement("h3");
+    heading.textContent = "Acompanhamento pessoal";
+    const ticket = document.createElement("p");
+    ticket.textContent = item.title;
+    const help = document.createElement("p");
+    help.textContent = "Salvo neste navegador. Não altera o chamado no HubSpot. Horário local do computador.";
+    form.append(heading, ticket, help);
+    function field(labelText, name, type, value, maxLength) {
+      const label = document.createElement("label");
+      label.textContent = labelText;
+      const input = document.createElement("input");
+      input.name = name;
+      input.type = type;
+      input.value = value;
+      if (maxLength) input.maxLength = maxLength;
+      label.append(input);
+      form.append(label);
+      return input;
+    }
+    const waiting = field("Aguardando", "waitingFor", "text", item.waitingFor || "", 300);
+    const next = field("Próxima ação", "nextAction", "text", item.nextAction || "", 500);
+    let localDate = "";
+    if (item.dueAt) {
+      const date = new Date(item.dueAt);
+      localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    }
+    const due = field("Data e hora (opcional)", "dueAt", "datetime-local", localDate);
+    const priorityLabel = document.createElement("label");
+    priorityLabel.textContent = "Prioridade pessoal";
+    const priority = document.createElement("select");
+    priority.name = "priority";
+    for (const [value, text] of [["low", "Baixa"], ["normal", "Normal"], ["high", "Alta"]]) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = text;
+      priority.append(option);
+    }
+    priority.value = item.priority || "normal";
+    priorityLabel.append(priority);
+    form.append(priorityLabel);
+    const footer = document.createElement("div");
+    const cancel = agendaButton("Cancelar", () => dialog.close());
+    const save = document.createElement("button");
+    save.type = "submit";
+    save.className = "hs-agenda-button";
+    save.textContent = "Salvar acompanhamento";
+    footer.append(cancel, save);
+    form.append(footer);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const current = findSaved(key);
+      if (!current) {
+        dialog.close();
+        showNotice("Este atendimento foi removido de Atenção.", "warn");
+        return;
+      }
+      const timestamp = due.value ? new Date(due.value).getTime() : null;
+      if (due.value && !Number.isFinite(timestamp)) return;
+      Object.assign(current, {
+        waitingFor: waiting.value.trim(), nextAction: next.value.trim(),
+        dueAt: timestamp, priority: priority.value, completedAt: null,
+      });
+      persistItems();
+      dialog.close();
+      refreshUI();
+      showNotice("Acompanhamento salvo neste navegador.", "ok");
+    });
+    dialog.addEventListener("close", () => dialog.remove(), { once: true });
+    dialog.append(form);
+    document.body.append(dialog);
+    dialog.showModal();
+    waiting.focus();
+  }
+
   function createPanelItem(item) {
     const card = document.createElement("article");
     card.className = "hs-attention-item";
@@ -2200,6 +2299,34 @@
     meta.textContent = pieces.join(" · ");
 
     main.append(title, meta);
+    const agenda = document.createElement("div");
+    agenda.className = "hs-agenda-details";
+    const overdue = !item.completedAt && item.dueAt && item.dueAt <= Date.now();
+    card.classList.toggle("hs-agenda-overdue", !!overdue);
+    function line(text) {
+      const element = document.createElement("div");
+      element.textContent = text;
+      agenda.append(element);
+    }
+    line("Prioridade: " + ({ low: "Baixa", normal: "Normal", high: "Alta" }[item.priority] || "Normal"));
+    if (item.waitingFor) line("Aguardando: " + item.waitingFor);
+    if (item.nextAction) line("Próxima ação: " + item.nextAction);
+    if (item.completedAt) line("✓ Ação concluída");
+    else if (item.dueAt) line((overdue ? "⚠ Vencido: " : "🕒 ") + new Date(item.dueAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }));
+    else line("Sem lembrete definido");
+    const controls = document.createElement("div");
+    controls.className = "hs-agenda-controls";
+    controls.append(agendaButton("Editar acompanhamento", () => editAgenda(item.key)));
+    if (!item.completedAt && (item.nextAction || item.dueAt)) {
+      controls.append(agendaButton("Concluir ação", () => {
+        const current = findSaved(item.key);
+        if (!current) return;
+        current.completedAt = Date.now();
+        persistItems();
+        refreshUI();
+      }));
+    }
+    main.append(agenda, controls);
 
     const actions = document.createElement("div");
     actions.className = "hs-attention-item-actions";
@@ -2227,8 +2354,8 @@
     const panel = ensurePanel();
     // Preserve the buttons between scans so a refresh cannot interrupt a click.
     const visible = panelOpen && assignedViewActive();
-    const signature = JSON.stringify(items.map(({ key, title, contact, ticketCode, addedAt }) =>
-      [key, title, contact, ticketCode, addedAt, relativeTime(addedAt)]));
+    const signature = JSON.stringify(items.map(({ key, title, contact, ticketCode, addedAt, waitingFor, nextAction, dueAt, priority, completedAt }) =>
+      [key, title, contact, ticketCode, addedAt, relativeTime(addedAt), waitingFor, nextAction, dueAt, priority, completedAt, !!dueAt && dueAt <= Date.now()]));
     if (signature === renderedPanelSignature && panel.childElementCount) {
       panel.hidden = !visible;
       if (visible) positionPanel();
@@ -2269,7 +2396,11 @@
       empty.innerHTML = "<strong>Nenhum atendimento em Atenção.</strong><span>Use a estrela nos cards de “Atribuído a mim” para separar um chamado importante.</span>";
       body.appendChild(empty);
     } else {
-      const sorted = [...items].sort((a, b) => Number(a.addedAt) - Number(b.addedAt));
+      const sorted = [...items].sort((a, b) => {
+        const aDue = !a.completedAt && a.dueAt ? a.dueAt : Infinity;
+        const bDue = !b.completedAt && b.dueAt ? b.dueAt : Infinity;
+        return (aDue === bDue ? 0 : aDue < bDue ? -1 : 1) || Number(a.addedAt) - Number(b.addedAt);
+      });
       sorted.forEach((item) => body.appendChild(createPanelItem(item)));
     }
 

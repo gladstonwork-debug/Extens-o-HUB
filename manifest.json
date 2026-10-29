@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "HubSpot Help Desk - Sinalizador de Chamados (TESTE 3.0.12)",
-  "version": "3.0.12",
-  "version_name": "3.0.12 TESTE - Ajuste da aba Atenção",
+  "name": "HubSpot Help Desk - Sinalizador de Chamados (TESTE 3.0.13)",
+  "version": "3.0.13",
+  "version_name": "3.0.13 TESTE - Agenda pessoal em Atenção",
   "description": "Mantém integralmente a base 3.0.10 e ajusta apenas o posicionamento do Resumo histórico IA para acompanhar o composer ativo em Chat e Observação, sem sobrepor a área de texto.",
   "permissions": [
     "storage"

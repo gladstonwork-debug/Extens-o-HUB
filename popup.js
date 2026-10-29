@@ -166,9 +166,9 @@ function requestDiagnostic() {
 
 function diagnosticText() {
   const d = lastDiagnostic;
-  if (!d) return "HubSpot Sinalizador 3.0.12\nDiagnóstico indisponível na aba atual.";
+  if (!d) return "HubSpot Sinalizador 3.0.13\nDiagnóstico indisponível na aba atual.";
   return [
-    `HubSpot Sinalizador ${d.version || "3.0.12"}`,
+    `HubSpot Sinalizador ${d.version || "3.0.13"}`,
     `HubSpot: ${d.hubspotDetected ? "OK" : "não detectado"}`,
     `Help Desk: ${d.helpDeskDetected ? "OK" : "não detectado"}`,
     `Dark Reader: ${d.darkReader ? "ativo" : "inativo"}`,
